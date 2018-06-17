@@ -1,0 +1,86 @@
+WEB
+* OK - web Crear abm de promos y api
+* OK - Web pedidos api procesar nuevo pedido (prueba con insomia)
+* OK - Quitar Precio unitario de pedidodetalle y todos los lugares donde se usa
+* OK - Web FrontEnd mostrar pedido de hoy
+* OK - Web FrontEnd mostrar listado de pedidos
+* OK Crear javascript de notificacion de pedidos
+* OK crear consulta api json con cantidad de pedidos visto = false
+* OK Crear campo enabled en productos ABM modificarlos
+* OK Crear formulario Editar Precio del Kilo, dato donde impacta es un update al parametro de Precio Kilo
+* OK Crear formulario editar mis datos
+* OK Formulario cambiar contrase�a, arreglar estilo
+* OK ordernar pedidos de hoy por visto
+
+
+
+* Crear Select2 para seleccionar cantidad, en nuevo detalle pedido
+* pagina acceso denegado redirigir a una pagina valida de mensaje de error
+* Editar pedido, permitir modificar  datos de direccion, 
+* Crear abm de parametros y api
+    crear los parametros que necesita la app
+    en la app quitar el insert de parametros inicial
+    hacer que los parametros se descarguen desde la web
+ 
+
+	
+
+
+
+TEST 
+ABM Marcas, Alta Ok, Delete Ok, edit Ok, view Ok, list ok
+ABM Categorias add ok, edit ok, delete  , view ok,  list ok
+ABM Helados    
+ABM Promociones
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+ANDROID
+Android Chequear funcionamiento descarga de promos en la app android
+Android hacer funcion para actualizar las promos en la app desde la web, luego de generar un pedido nuevo
+Android cambiar colores a la app
+Android agregar campo enabled en productos, crud y api 
+
+"knplabs/knp-snappy-bundle": "^1.4",
+"whiteoctober/tcpdf-bundle": "^1.0"
+
+//"AdaptiveTech\\DeliveryTrackerBundle\\": "src/AdaptiveTech/DeliveryTrackerBundle",  
+------------------------------------------------------------------------------------------------------------------------------------------------------
+IMPRESION 
+composer require mike42/escpos-php
+
+$connector = new WindowsPrintConnector("smb://62597-NOTE/POS58");
+
+
+cd ../../xampp/htdocs/heladeriapedidosweb
+
+php bin/console server:run 0.0.0.0:8000
+
+
+php bin/console generate:doctrine:entity
+
+php bin/console generate:doctrine:crud
+
+php bin/console doctrine:database:create
+
+php bin/console doctrine:schema:update --force
+
+php bin/console cache:clear --no-warmup --env=dev
+
+php bin/console cache:clear --no-warmup --env=prod
+
+php bin/console doctrine:database:create
+php bin/console doctrine:schema:validate
+
+
+php bin/console fos:user:create superadmin --super-admin
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+* olvide mi contraseña
+* campos fecha valor default dia de HOY
+* Pedido nuevo detalle, 
+    filtrar clientes por empresa, 
+    estado no puede ser null
+    Pedido detalle formato de campos money y cantidad
+
+-----------------------------------------------
