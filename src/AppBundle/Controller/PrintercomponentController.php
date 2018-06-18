@@ -35,10 +35,6 @@ use FOS\RestBundle\Controller\Annotations as Rest;
  */
 class PrintercomponentController extends FOSRestController
 {
-    
-   
-   
-    
 
     /**
      * @Route("/pdfprint4/{id}", name="Printercomponent_pdfprint4")
@@ -134,64 +130,7 @@ class PrintercomponentController extends FOSRestController
 
     }
 
-    /**
-     * @Route("/pdfprint5/{id}", name="Printercomponent_pdfprint5")
-     * @Method({"GET","POST"})
-     */
-    public function pdfprint5Action(Request $request)
-    {
-        //Recibir json con el Pedido en formato json
-        //decodificar json
-        // generar impresion
-
-        try {
-
-            $content = $request->getContent();
-            $code = Response::HTTP_OK; 
-            $message='OK'; 
-            $result = "";
-            $json = json_decode($content, true);
-            
-
-            $id = $Printercomponent->getId();
-            $connector = new WindowsPrintConnector("smb://62597-NOTE/POS58");  
-            //$connector = new WindowsPrintConnector("smb://127.0.0.1:7001/POS58");  
-            $Printercomponent = new Printercomponent($connector);
-            $Printercomponent->setJustification(Printercomponent::JUSTIFY_CENTER);
-            $Printercomponent->setEmphasis(true);
-            $Printercomponent->text("Roma Helados \n");
-            $Printercomponent->text("\n");
-            $Printercomponent->setEmphasis(true);
-
-           
-            
-            if (array_key_exists ('user_id', $json)){
-                $user_id     = $json['user_id'];
-                //$json['pedido']['id'];
-                $Printercomponent->text($json['user_id']);
-                $Printercomponent->text("\n");
-            }
-
-            if ($json['pedido']['pedidodetalles']){
-                $detalles = $json['pedido']['pedidodetalles'];
-                foreach ($detalles as $item){
-                    $Printercomponent->text($item['producto_id']);
-                    $Printercomponent->text("\n");
-                }
-            }
-
-            $Printercomponent->cut();
-            $Printercomponent->close();
-            
-            
-            return $this->redirect('http://localhost/components/Printercomponent/imprimirPrintercomponent.php');
-
-        } catch(Exception $e) {
-            echo "Couldn't print to this Printercomponent: " . $e -> getMessage() . "\n";
-        }
-               
-
-    }
+    
 
 
 
