@@ -131,6 +131,49 @@ class PrintercomponentController extends FOSRestController
 
     }
 
+    public function getCantidadString(){
+        $texto = "";
+        if ($this->cantidad >= GlobalValue::MEDIDA_HELADO_POCO_DESDE && $this->cantidad <=GlobalValue::MEDIDA_HELADO_POCO_HASTA ){
+            $texto = "Poco";
+        }
+        if ($this->cantidad > GlobalValue::MEDIDA_HELADO_EQUILIBRADO_DESDE  && $this->cantidad <=GlobalValue::MEDIDA_HELADO_EQUILIBRADO_HASTA ){
+            $texto = "Equilibrado";
+        }
+        if ($this->cantidad >= GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_DESDE && $this->cantidad <=GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_HASTA ){
+            $texto = "Mucho";
+        }
+        return $texto;
+    }
+    
+    
+    public function getMedidaPoteFormat(){
+        $_medidapote = "";
+        switch ($this->medidapote) {
+            case 1000:
+                # code...
+                $_medidapote = "1 Kg";
+                break;
+            case 750:
+                # code...
+                $_medidapote = "3/4 Kg";
+                break;
+            case 500:
+                # code...
+                $_medidapote = "1/2 Kg";
+                break;
+            case 250:
+                # code...
+                $_medidapote = "1/4 Kg";
+                break;
+            
+            default:
+                # code...
+                break;
+        }
+        
+        return $_medidapote;
+    }
+
     
 
 
