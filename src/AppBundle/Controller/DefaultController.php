@@ -54,42 +54,134 @@ class DefaultController extends Controller
             $code    = Response::HTTP_OK; 
             $message ='OK'; 
             $result  = "";
+
             $json    = json_decode($content, true);
-            //print $json;
-            //print $content; 
+            if (array_key_exists ('id', $json['pedido'])){
+                $pedido_id = $json['pedido']['id'];
+                $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
+            }
+
+            //Llamar a Api Rest con nro de pedido
+            $url_api = "http://127.0.0.1:7002/api/pedido/findbyid";
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $param_post_request_json );
+            curl_setopt($curl, CURLOPT_URL, $url_api);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            $result = curl_exec($curl);
+            curl_close($curl);
+
+            $json = json_decode($result, true);
             
-           
+
+         
+        
+
+
+
+            //Imprimir ticket
             $connector = new WindowsPrintConnector("smb://62597-NOTE/POS58");  
             //$connector = new WindowsPrintConnector("smb://127.0.0.1:7001/POS58");  
-            $Printercomponent = new Printer($connector);
-            $Printercomponent->setJustification(Printer::JUSTIFY_CENTER);
-            $Printercomponent->setEmphasis(true);
-            $Printercomponent->text("Roma Helados \n");
-            $Printercomponent->text("\n");
-            $Printercomponent->setEmphasis(true);
-            
+            $printercomponent = new Printer($connector);
+            $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
+            $printercomponent->setEmphasis(true);
+            $printercomponent->text("Roma Helados \n");
+
+            $printercomponent->setEmphasis(false);
+            $printercomponent->setJustification(Printer::JUSTIFY_LEFT);
+                       
+
             if (!empty($json)){
-                if (array_key_exists ('user_id', $json['pedido'])){
-                    $Printercomponent->text($json['pedido']['user_id']);
-                    $Printercomponent->text("\n");
+                
+                if (array_key_exists ('id', $json['data'])){
+                    $texto = "Pedido Nro: " . $json['data']['id'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
                 }
 
-                if (array_key_exists ('pedidodetalles', $json['pedido'])){    
-                    $detalles = $json['pedido']['pedidodetalles'];
+                if (array_key_exists ('fecha', $json['data'])){
+                    $texto = "Fecha: " . $json['data']['fecha'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+
+                if (array_key_exists ('horaentrega', $json['data'])){
+                    $texto = "Hora de Entrega: " . $json['data']['horaentrega'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+
+                if (array_key_exists ('contacto', $json['data'])){
+                    $texto = "Cliente: " . $json['data']['contacto'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+
+                if (array_key_exists ('direccion', $json['data'])){
+                    $texto = "Direccion: " . $json['data']['direccion'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+
+                if (array_key_exists ('telefono', $json['data'])){
+                    $texto = "Telefono: " . $json['data']['telefono'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+
+
+
+
+               
+                //Detalle
+                $printercomponent->setEmphasis(true);
+            
+                $printercomponent->text("\n");
+                $printercomponent->text("Helados Elegidos \n");
+                $titulo = str_pad("N°", 2) . str_pad("Pote", 7) . str_pad("Sabor", 15) . str_pad("Cantidad", 8); 
+                $printercomponent->text($titulo);
+                $printercomponent->setEmphasis(false);
+
+                if (array_key_exists ('pedidodetalles', $json['data'])){    
+                    $detalles = $json['data']['pedidodetalles'];
                     foreach ($detalles as $item){
-                        $Printercomponent->text($item['producto_id']);
-                        $Printercomponent->text("\n");
+                      
+                        $printercomponent->text("\n");
+                        $nro_pote = str_pad($item['producto']['nropote'], 2);
+                        $printercomponent->text($nro_pote);
+        
+                        $pote = str_pad($item['producto']['medidapote'], 7);
+                        $printercomponent->text($pote);
+        
+                        $producto = str_pad($item['producto']['nombre'],15);
+                        $printercomponent->text($producto);
+                        
+                        $cantidad = str_pad($item['producto']['cantidad'],8);
+                        $printercomponent->text($cantidad);
+            
+
+
                     }
                 }
-
-                $Printercomponent->cut();
-                $Printercomponent->close();
                 
-                $data = array('code'=>'200',
-                    'message'=>'ok',
-                    'data'=>$json
-                );
-                $response->setContent(json_encode($data));
+                //Fin detalle
+
+                //Footer
+
+                if (array_key_exists ('montoabona', $json['data'])){
+                    $texto = "Abona Con: " . $json['data']['montoabona'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+                if (array_key_exists ('monto', $json['data'])){
+                    $texto = "Monto: " . $json['data']['monto'];
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+                }
+                //Fin Footer 
+
+                $printercomponent->cut();
+                $printercomponent->close();
+                $response->setContent(json_encode($json));
 
 
             }else{
@@ -117,5 +209,39 @@ class DefaultController extends Controller
        
     }
 
+
+function CallAPI($method, $url, $data = false)
+{
+    $curl = curl_init();
+
+    switch ($method)
+    {
+        case "POST":
+            curl_setopt($curl, CURLOPT_POST, 1);
+
+            if ($data)
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            break;
+        case "PUT":
+            curl_setopt($curl, CURLOPT_PUT, 1);
+            break;
+        default:
+            if ($data)
+                $url = sprintf("%s?%s", $url, http_build_query($data));
+    }
+
+    // Optional Authentication:
+  //  curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+//    curl_setopt($curl, CURLOPT_USERPWD, "username:password");
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+    $result = curl_exec($curl);
+
+    curl_close($curl);
+
+    return $result;
+}
 
 }

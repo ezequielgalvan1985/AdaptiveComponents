@@ -56,6 +56,7 @@ class PrintercomponentController extends FOSRestController
             $Printercomponent->setJustification(Printercomponent::JUSTIFY_LEFT);
             
             $Printercomponent->text("Printercomponent Nro: $id \n");
+           
             $hora = $Printercomponent->getHoraEntregaFormatHMS();
             $Printercomponent->text("Hora de Entrega: $hora \n");
             
