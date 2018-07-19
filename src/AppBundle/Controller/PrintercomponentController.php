@@ -44,7 +44,7 @@ class PrintercomponentController extends FOSRestController
     {
         try {
            
-            $connector = new WindowsPrintConnector("smb://62597-NOTE/POS58");  
+            $connector = new WindowsPrintConnector("smb://ROMAHELADOS-PC/POS-58");  
             
             $Printercomponent = new Printercomponent($connector);
             $Printercomponent->setJustification(Printercomponent::JUSTIFY_CENTER);

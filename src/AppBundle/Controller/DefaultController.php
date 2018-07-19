@@ -62,7 +62,9 @@ class DefaultController extends Controller
             }
 
             //Llamar a Api Rest con nro de pedido
-            $url_api = "http://127.0.0.1:7002/api/pedido/findbyid";
+            //$url_api = "http://127.0.0.1:7002/api/pedido/findbyid";
+            $url_api = "http://18.228.6.207/api/pedido/findbyid";
+            
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_POSTFIELDS, $param_post_request_json );
             curl_setopt($curl, CURLOPT_URL, $url_api);
@@ -79,7 +81,7 @@ class DefaultController extends Controller
 
 
             //Imprimir ticket
-            $connector = new WindowsPrintConnector("smb://62597-NOTE/POS58");  
+            $connector = new WindowsPrintConnector("smb://ROMAHELADOS/POS-58");  
             //$connector = new WindowsPrintConnector("smb://127.0.0.1:7001/POS58");  
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
