@@ -54,15 +54,18 @@ class DefaultController extends Controller
             $code    = Response::HTTP_OK; 
             $message ='OK'; 
             $result  = "";
-
+/*
             $json    = json_decode($content, true);
             if (array_key_exists ('id', $json['pedido'])){
                 $pedido_id = $json['pedido']['id'];
                 $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
             }
+*/
 
             //Llamar a Api Rest con nro de pedido
             //$url_api = "http://127.0.0.1:7002/api/pedido/findbyid";
+            
+            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>139)));
             $url_api = "http://18.228.6.207/api/pedido/findbyid";
             
             $curl = curl_init();
@@ -81,7 +84,7 @@ class DefaultController extends Controller
 
 
             //Imprimir ticket
-            $connector = new WindowsPrintConnector("smb://ROMAHELADOS/POS-58");  
+            $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
             //$connector = new WindowsPrintConnector("smb://127.0.0.1:7001/POS58");  
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
@@ -148,16 +151,16 @@ class DefaultController extends Controller
                     foreach ($detalles as $item){
                       
                         $printercomponent->text("\n");
-                        $nro_pote = str_pad($item['producto']['nropote'], 2);
+                        $nro_pote = str_pad($item['nropote'], 2);
                         $printercomponent->text($nro_pote);
         
-                        $pote = str_pad($item['producto']['medidapote'], 7);
+                        $pote = str_pad($item['medidapote'], 7);
                         $printercomponent->text($pote);
         
                         $producto = str_pad($item['producto']['nombre'],15);
                         $printercomponent->text($producto);
                         
-                        $cantidad = str_pad($item['producto']['cantidad'],8);
+                        $cantidad = str_pad($item['cantidad'],8);
                         $printercomponent->text($cantidad);
             
 
