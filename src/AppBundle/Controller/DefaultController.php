@@ -85,7 +85,6 @@ class DefaultController extends Controller
 
             //Imprimir ticket
             $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
-            //$connector = new WindowsPrintConnector("smb://127.0.0.1:7001/POS58");  
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
             $printercomponent->setEmphasis(true);
@@ -104,13 +103,13 @@ class DefaultController extends Controller
                 }
 
                 if (array_key_exists ('fecha', $json['data'])){
-                    $texto = "Fecha: " . $json['data']['fecha'];
+                    $texto = "Fecha: " . getHoraEntregaFormatHMS($json['data']['fecha']);
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
 
                 if (array_key_exists ('horaentrega', $json['data'])){
-                    $texto = "Hora de Entrega: " . $json['data']['horaentrega'];
+                    $texto = "Hora de Entrega: " . getHoraEntregaFormatHMS($json['data']['horaentrega']);
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
@@ -133,13 +132,9 @@ class DefaultController extends Controller
                     $printercomponent->text("\n");
                 }
 
-
-
-
                
                 //Detalle
                 $printercomponent->setEmphasis(true);
-            
                 $printercomponent->text("\n");
                 $printercomponent->text("Helados Elegidos \n");
                 $titulo = str_pad("N°", 2) . str_pad("Pote", 7) . str_pad("Sabor", 15) . str_pad("Cantidad", 8); 
@@ -154,16 +149,14 @@ class DefaultController extends Controller
                         $nro_pote = str_pad($item['nropote'], 2);
                         $printercomponent->text($nro_pote);
         
-                        $pote = str_pad($item['medidapote'], 7);
+                        $pote = str_pad(getMedidaPoteFormat($item['medidapote']), 7);
                         $printercomponent->text($pote);
         
                         $producto = str_pad($item['producto']['nombre'],15);
                         $printercomponent->text($producto);
                         
-                        $cantidad = str_pad($item['cantidad'],8);
+                        $cantidad = str_pad(getCantidadString($item['cantidad']),8);
                         $printercomponent->text($cantidad);
-            
-
 
                     }
                 }
@@ -183,11 +176,14 @@ class DefaultController extends Controller
                     $printercomponent->text("\n");
                 }
                 //Fin Footer 
-
+                $Printercomponent->text("\n");
+                $Printercomponent->text("\n");
+                $Printercomponent->text("\n");
+                
                 $printercomponent->cut();
                 $printercomponent->close();
                 $response->setContent(json_encode($json));
-
+                
 
             }else{
                 $data = array('code'=>'500',
@@ -215,38 +211,59 @@ class DefaultController extends Controller
     }
 
 
-function CallAPI($method, $url, $data = false)
-{
-    $curl = curl_init();
 
-    switch ($method)
+    public function getHoraEntregaFormatHMS($horaentrega)
     {
-        case "POST":
-            curl_setopt($curl, CURLOPT_POST, 1);
-
-            if ($data)
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-            break;
-        case "PUT":
-            curl_setopt($curl, CURLOPT_PUT, 1);
-            break;
-        default:
-            if ($data)
-                $url = sprintf("%s?%s", $url, http_build_query($data));
+        $horaformat = '';
+        if (!empty($horaentrega)){
+            $horaformat =  $horaentrega->format('H:i:s');
+        }
+        return $horaformat;
     }
 
-    // Optional Authentication:
-  //  curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-//    curl_setopt($curl, CURLOPT_USERPWD, "username:password");
 
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    public function getCantidadString($cantidad){
+        $texto = "";
+        if ($cantidad >= GlobalValue::MEDIDA_HELADO_POCO_DESDE && $cantidad <=GlobalValue::MEDIDA_HELADO_POCO_HASTA ){
+            $texto = "Poco";
+        }
+        if ($cantidad > GlobalValue::MEDIDA_HELADO_EQUILIBRADO_DESDE  && $cantidad <=GlobalValue::MEDIDA_HELADO_EQUILIBRADO_HASTA ){
+            $texto = "Equilibrado";
+        }
+        if ($cantidad >= GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_DESDE && $cantidad <=GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_HASTA ){
+            $texto = "Mucho";
+        }
+        return $texto;
+    }
+    
+    
+    public function getMedidaPoteFormat($medidapote){
+        $_medidapote = "";
+        switch ($medidapote) {
+            case 1000:
+                # code...
+                $_medidapote = "1 Kg";
+                break;
+            case 750:
+                # code...
+                $_medidapote = "3/4 Kg";
+                break;
+            case 500:
+                # code...
+                $_medidapote = "1/2 Kg";
+                break;
+            case 250:
+                # code...
+                $_medidapote = "1/4 Kg";
+                break;
+            
+            default:
+                # code...
+                break;
+        }
+        
+        return $_medidapote;
+    }
 
-    $result = curl_exec($curl);
-
-    curl_close($curl);
-
-    return $result;
-}
 
 }
