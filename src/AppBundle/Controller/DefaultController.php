@@ -57,10 +57,10 @@ class DefaultController extends Controller
             $result  = "";
 
             $json    = json_decode($content, true);
-  //          if (array_key_exists ('id', $json['pedido'])){
-                $pedido_id = $json['pedido']['id'];
-                $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
-    //        }
+ 
+            $pedido_id = $json['pedido']['id'];
+            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
+   
 
 
             //Llamar a Api Rest con nro de pedido
@@ -78,14 +78,15 @@ class DefaultController extends Controller
 
             $json = json_decode($result, true);
             
-
+           // dump($json);
          
         
 
 
 
             //Imprimir ticket
-            $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            //$connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            $connector = new FilePrintConnector("php://stdout");
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
             $printercomponent->setEmphasis(true);
@@ -96,7 +97,7 @@ class DefaultController extends Controller
                        
 
             if (!empty($json)){
-                    dump($json);                
+                   // dump($json);                
                     $texto = "Pedido Nro: " . $json['data']['id'];
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
