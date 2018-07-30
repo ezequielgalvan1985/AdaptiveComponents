@@ -85,8 +85,8 @@ class DefaultController extends Controller
 
 
             //Imprimir ticket
-            //$connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
-            $connector = new FilePrintConnector("php://stdout");
+            $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            //$connector = new FilePrintConnector("php://stdout");
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
             $printercomponent->setEmphasis(true);
