@@ -19,6 +19,7 @@ use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\CapabilityProfile;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use AppBundle\Entity\GlobalValue;
 
 use MP;
 
@@ -105,18 +106,18 @@ class DefaultController extends Controller
             $code    = Response::HTTP_OK; 
             $message ='OK'; 
             $result  = "";
-/*
+
             $json    = json_decode($content, true);
-            if (array_key_exists ('id', $json['pedido'])){
-                $pedido_id = $json['pedido']['id'];
-                $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
-            }
-*/
+ 
+            $pedido_id = $json['pedido']['id'];
+            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
+   
+
 
             //Llamar a Api Rest con nro de pedido
             //$url_api = "http://127.0.0.1:7002/api/pedido/findbyid";
             
-            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>139)));
+//            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>139)));
             $url_api = "http://18.228.6.207/api/pedido/findbyid";
             
             $curl = curl_init();
@@ -128,7 +129,7 @@ class DefaultController extends Controller
 
             $json = json_decode($result, true);
             
-
+           // dump($json);
          
         
 
@@ -136,6 +137,7 @@ class DefaultController extends Controller
 
             //Imprimir ticket
             $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            //$connector = new FilePrintConnector("php://stdout");
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
             $printercomponent->setEmphasis(true);
@@ -146,21 +148,19 @@ class DefaultController extends Controller
                        
 
             if (!empty($json)){
-                
-                if (array_key_exists ('id', $json['data'])){
+                   // dump($json);                
                     $texto = "Pedido Nro: " . $json['data']['id'];
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
-                }
-
+      
                 if (array_key_exists ('fecha', $json['data'])){
-                    $texto = "Fecha: " . getHoraEntregaFormatHMS($json['data']['fecha']);
+                    $texto = "Fecha: " . $this->getHoraEntregaFormatHMS($json['data']['fecha']);
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
 
                 if (array_key_exists ('horaentrega', $json['data'])){
-                    $texto = "Hora de Entrega: " . getHoraEntregaFormatHMS($json['data']['horaentrega']);
+                    $texto = "Hora de Entrega: " . $this->getHoraEntregaFormatHMS($json['data']['horaentrega']);
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
@@ -188,7 +188,7 @@ class DefaultController extends Controller
                 $printercomponent->setEmphasis(true);
                 $printercomponent->text("\n");
                 $printercomponent->text("Helados Elegidos \n");
-                $titulo = str_pad("N°", 2) . str_pad("Pote", 7) . str_pad("Sabor", 15) . str_pad("Cantidad", 8); 
+                $titulo = str_pad("N°", 2) . str_pad("Pote", 7) . str_pad("Sabor", 17) . str_pad("Cant.", 6); 
                 $printercomponent->text($titulo);
                 $printercomponent->setEmphasis(false);
 
@@ -200,13 +200,13 @@ class DefaultController extends Controller
                         $nro_pote = str_pad($item['nropote'], 2);
                         $printercomponent->text($nro_pote);
         
-                        $pote = str_pad(getMedidaPoteFormat($item['medidapote']), 7);
+                        $pote = str_pad($this->getMedidaPoteFormat($item['medidapote']), 7);
                         $printercomponent->text($pote);
         
-                        $producto = str_pad($item['producto']['nombre'],15);
+                        $producto = str_pad($item['producto']['nombre'],17);
                         $printercomponent->text($producto);
                         
-                        $cantidad = str_pad(getCantidadString($item['cantidad']),8);
+                        $cantidad = str_pad($this->getCantidadString($item['cantidad']),6);
                         $printercomponent->text($cantidad);
 
                     }
@@ -216,20 +216,24 @@ class DefaultController extends Controller
 
                 //Footer
 
+                $printercomponent->text("\n");
                 if (array_key_exists ('montoabona', $json['data'])){
-                    $texto = "Abona Con: " . $json['data']['montoabona'];
+                    $texto = "Abona Con: $" . $json['data']['montoabona'];
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
                 if (array_key_exists ('monto', $json['data'])){
-                    $texto = "Monto: " . $json['data']['monto'];
+                    $texto = "Monto: $" . $json['data']['monto'];
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
                 //Fin Footer 
-                $Printercomponent->text("\n");
-                $Printercomponent->text("\n");
-                $Printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
                 
                 $printercomponent->cut();
                 $printercomponent->close();
@@ -267,6 +271,7 @@ class DefaultController extends Controller
     {
         $horaformat = '';
         if (!empty($horaentrega)){
+            $horaentrega= new \DateTime($horaentrega);
             $horaformat =  $horaentrega->format('H:i:s');
         }
         return $horaformat;
@@ -279,7 +284,7 @@ class DefaultController extends Controller
             $texto = "Poco";
         }
         if ($cantidad > GlobalValue::MEDIDA_HELADO_EQUILIBRADO_DESDE  && $cantidad <=GlobalValue::MEDIDA_HELADO_EQUILIBRADO_HASTA ){
-            $texto = "Equilibrado";
+            $texto = "Equil.";
         }
         if ($cantidad >= GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_DESDE && $cantidad <=GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_HASTA ){
             $texto = "Mucho";
