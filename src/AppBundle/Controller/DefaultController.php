@@ -2,6 +2,8 @@
 
 namespace AppBundle\Controller;
 
+require_once __DIR__.'/../../../vendor/autoload.php';
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +20,7 @@ use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\CapabilityProfile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use MP;
 
 class DefaultController extends Controller
 {
@@ -32,8 +35,56 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     * @Route("/mercadopago/create/", name="mercadopagocreate")
+     */
+    public function mercadopagoCreateAction(Request $request)
+    {
+        try {
+            $content = $request->getContent();
+            $response = new Response();
+            $response->headers->set('Content-Type', 'application/json');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $code    = Response::HTTP_OK; 
 
+          
+            $mp = new MP ("2207797945420831", "lZVQBryGrJ3wzcuFLBrxsWuETU4sm1IE");
+            
 
+            $preference_data = array (
+                "items" => array (
+                    array (
+                        "title" => "2 kilos de helados",
+                        "quantity" => 1,
+                        "currency_id" => "ARS",
+                        "unit_price" => 250.00
+                    )
+                )
+            );
+            
+            $preference = $mp->create_preference($preference_data);
+           
+            //print_r ($paymentInfo);
+            
+           
+
+            $data = array('code'=>'500',
+            'message'=>'error',
+            'data'=>'puto',
+            'content'=>$preference
+            );
+            $response->setContent(json_encode($data));
+        
+            return $response;
+        } catch(Exception $e) {
+            $data = array('code'=>'200',
+                'message'=>'ok',
+                'data'=>$e->getMessage()
+            );
+            $response->setData($data);
+            return $response;
+        }
+    }
 
 
      /**
