@@ -46,28 +46,23 @@ class DefaultController extends Controller
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $code    = Response::HTTP_OK; 
-
-          
+            $json    = $content;
             $mp = new MP ("2207797945420831", "lZVQBryGrJ3wzcuFLBrxsWuETU4sm1IE");
-            
-
             $preference_data = array (
                 "items" => array (
                     array (
-                        "title" => "2 kilos de helados",
-                        "quantity" => 1,
-                        "currency_id" => "ARS",
-                        "unit_price" => 250.00
+                        "title"       => $json['title'],
+                        "quantity"    => $json['quantity'],
+                        "player_email"=> $json['player_email'],
+                        "currency_id" => $json['currency_id'],
+                        "unit_price"  => $json['amount'],
+                        "item_id"     => $json['item_id']
                     )
                 )
             );
             
             $preference = $mp->create_preference($preference_data);
            
-            //print_r ($paymentInfo);
-            
-           
-
             $response->setContent(json_encode($preference));
         
             return $response;
