@@ -36,46 +36,7 @@ class DefaultController extends Controller
         ]);
     }
 
-    /**
-     * @Route("/mercadopago/create/", name="mercadopagocreate")
-     */
-    public function mercadopagoCreateAction(Request $request)
-    {
-        try {
-            $content = $request->getContent();
-            $response = new Response();
-            $response->headers->set('Content-Type', 'application/json');
-            $response->headers->set('Access-Control-Allow-Origin', '*');
-            $code    = Response::HTTP_OK; 
-            $json    = $content;
-            $mp = new MP ("2207797945420831", "lZVQBryGrJ3wzcuFLBrxsWuETU4sm1IE");
-            $preference_data = array (
-                "items" => array (
-                    array (
-                        "title"       => $json['title'],
-                        "quantity"    => $json['quantity'],
-                        "player_email"=> $json['player_email'],
-                        "currency_id" => $json['currency_id'],
-                        "unit_price"  => $json['amount'],
-                        "item_id"     => $json['item_id']
-                    )
-                )
-            );
-            
-            $preference = $mp->create_preference($preference_data);
-           
-            $response->setContent(json_encode($preference));
-        
-            return $response;
-        } catch(Exception $e) {
-            $data = array('code'=>'200',
-                'message'=>'ok',
-                'data'=>$e->getMessage()
-            );
-            $response->setData($data);
-            return $response;
-        }
-    }
+    
 
 
      /**
@@ -108,8 +69,8 @@ class DefaultController extends Controller
             
             
             //Llamar a Api Rest con nro de pedido
-            $url_api = "http://127.0.0.1:8000/api/pedido/findbyid";
-            //$url_api = "http://18.228.6.207/api/pedido/findbyid";
+            //$url_api = "http://127.0.0.1:8000/api/pedido/findbyid";
+            $url_api = "http://18.228.6.207/api/pedido/findbyid";
 
 
             //comentar esta linea
