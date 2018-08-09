@@ -19,7 +19,8 @@ use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\CapabilityProfile;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
+use Datetime;
+use AppBundle\Entity\GlobalValue;   
 use MP;
 
 class DefaultController extends Controller
@@ -95,19 +96,25 @@ class DefaultController extends Controller
             $code    = Response::HTTP_OK; 
             $message ='OK'; 
             $result  = "";
-/*
-            $json    = json_decode($content, true);
-            if (array_key_exists ('id', $json['pedido'])){
-                $pedido_id = $json['pedido']['id'];
-                $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
-            }
-*/
-
-            //Llamar a Api Rest con nro de pedido
-            //$url_api = "http://127.0.0.1:7002/api/pedido/findbyid";
             
-            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>139)));
-            $url_api = "http://18.228.6.207/api/pedido/findbyid";
+            //Este codigo debe estar en la pc local del cliente para tomar el dato del pedido que se envio como parametro
+            
+            $json    = json_decode($content, true);
+            $pedido_id                    = $json['pedido']['id'];
+            
+            $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
+            //$param_post_request_json      = json_encode(array('pedido'=> array('id'=>139)));
+            
+            
+            
+            //Llamar a Api Rest con nro de pedido
+            $url_api = "http://127.0.0.1:8000/api/pedido/findbyid";
+            //$url_api = "http://18.228.6.207/api/pedido/findbyid";
+
+
+            //comentar esta linea
+            
+            
             
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_POSTFIELDS, $param_post_request_json );
@@ -125,7 +132,10 @@ class DefaultController extends Controller
 
 
             //Imprimir ticket
-            $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            //$connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            
+            $connector = new FilePrintConnector("php://stdout");
+
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
             $printercomponent->setEmphasis(true);
@@ -144,13 +154,13 @@ class DefaultController extends Controller
                 }
 
                 if (array_key_exists ('fecha', $json['data'])){
-                    $texto = "Fecha: " . getHoraEntregaFormatHMS($json['data']['fecha']);
+                    $texto = "Fecha: " . $this->getHoraEntregaFormatHMS($json['data']['fecha']);
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
 
                 if (array_key_exists ('horaentrega', $json['data'])){
-                    $texto = "Hora de Entrega: " . getHoraEntregaFormatHMS($json['data']['horaentrega']);
+                    $texto = "Hora de Entrega: " . $this->getHoraEntregaFormatHMS($json['data']['horaentrega']);
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
@@ -161,11 +171,17 @@ class DefaultController extends Controller
                     $printercomponent->text("\n");
                 }
 
-                if (array_key_exists ('direccion', $json['data'])){
-                    $texto = "Direccion: " . $json['data']['direccion'];
+                if (array_key_exists ('calle', $json['data'])){
+
+                    $texto = "Direccion: ". $json['data']['calle']  ;
+                    $printercomponent->text($texto);
+                    $printercomponent->text("\n");
+
+                    $texto = "Nro ". $json['data']['nro'] ." (piso ". $json['data']['piso'] .")"  ;
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
+               
 
                 if (array_key_exists ('telefono', $json['data'])){
                     $texto = "Telefono: " . $json['data']['telefono'];
@@ -178,48 +194,69 @@ class DefaultController extends Controller
                 $printercomponent->setEmphasis(true);
                 $printercomponent->text("\n");
                 $printercomponent->text("Helados Elegidos \n");
-                $titulo = str_pad("N°", 2) . str_pad("Pote", 7) . str_pad("Sabor", 15) . str_pad("Cantidad", 8); 
+                $titulo =  str_pad("    Sabor", 15) . str_pad("Cantidad", 8); 
                 $printercomponent->text($titulo);
                 $printercomponent->setEmphasis(false);
-
+                
+                $poteactual = 0;
+                $indexpote    = 0;
                 if (array_key_exists ('pedidodetalles', $json['data'])){    
                     $detalles = $json['data']['pedidodetalles'];
                     foreach ($detalles as $item){
-                      
                         $printercomponent->text("\n");
-                        $nro_pote = str_pad($item['nropote'], 2);
-                        $printercomponent->text($nro_pote);
-        
-                        $pote = str_pad(getMedidaPoteFormat($item['medidapote']), 7);
-                        $printercomponent->text($pote);
-        
-                        $producto = str_pad($item['producto']['nombre'],15);
+                        
+                        
+                        $indexpote = $item['nropote'];
+                        if ($poteactual != $indexpote){
+                            
+                            //Separador entre potes
+                        
+                            $printercomponent->text("--------------------------------"); 
+                            $printercomponent->text("\n");  
+                            
+                            $nro_pote = str_pad($item['nropote'], 2);
+                            $printercomponent->text("( Pote $nro_pote) ");
+                            
+                            if (array_key_exists ('medidapote', $item)){
+                                $pote = str_pad($this->getMedidaPoteFormat($item['medidapote']), 7);
+                                $printercomponent->text($pote);
+                            }
+                            $poteactual = $indexpote; 
+                            $printercomponent->text("\n");   
+                        }
+
+                        $producto = "    " . str_pad($item['producto']['nombre'],15);
                         $printercomponent->text($producto);
                         
-                        $cantidad = str_pad(getCantidadString($item['cantidad']),8);
-                        $printercomponent->text($cantidad);
+                        if (array_key_exists ('cantidad', $item)){
+                            $cantidad = str_pad($this->getCantidadString($item['cantidad']),8);
+                            $printercomponent->text($cantidad);
+                        }
+
 
                     }
                 }
                 
                 //Fin detalle
-
+                $printercomponent->text("\n");   
+                $printercomponent->text("--------------------------------"); 
                 //Footer
-
+                $printercomponent->text("\n");  
+                $printercomponent->text("\n");  
                 if (array_key_exists ('montoabona', $json['data'])){
-                    $texto = "Abona Con: " . $json['data']['montoabona'];
+                    $texto = "Abona Con: $" . $json['data']['montoabona'];
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
                 if (array_key_exists ('monto', $json['data'])){
-                    $texto = "Monto: " . $json['data']['monto'];
+                    $texto = "Monto: $" . $json['data']['monto'];
                     $printercomponent->text($texto);
                     $printercomponent->text("\n");
                 }
                 //Fin Footer 
-                $Printercomponent->text("\n");
-                $Printercomponent->text("\n");
-                $Printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
+                $printercomponent->text("\n");
                 
                 $printercomponent->cut();
                 $printercomponent->close();
@@ -256,6 +293,8 @@ class DefaultController extends Controller
     public function getHoraEntregaFormatHMS($horaentrega)
     {
         $horaformat = '';
+        
+        $horaentrega = new DateTime($horaentrega);
         if (!empty($horaentrega)){
             $horaformat =  $horaentrega->format('H:i:s');
         }
