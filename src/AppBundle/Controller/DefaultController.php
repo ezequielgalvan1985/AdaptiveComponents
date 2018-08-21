@@ -64,13 +64,15 @@ class DefaultController extends Controller
             $pedido_id                    = $json['pedido']['id'];
             
             $param_post_request_json      = json_encode(array('pedido'=> array('id'=>$pedido_id))); 
-            //$param_post_request_json      = json_encode(array('pedido'=> array('id'=>139)));
             
             
             
-            //Llamar a Api Rest con nro de pedido
-            //$url_api = "http://127.0.0.1:8000/api/pedido/findbyid";
             $url_api = "http://18.228.6.207/api/pedido/findbyid";
+            //Llamar a Api Rest con nro de pedido
+            //Test
+            //$url_api = "http://127.0.0.1:8000/api/pedido/findbyid";
+            
+            
 
 
             //comentar esta linea
@@ -93,9 +95,9 @@ class DefaultController extends Controller
 
 
             //Imprimir ticket
-            //$connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
-            
-            $connector = new FilePrintConnector("php://stdout");
+            $connector = new WindowsPrintConnector("smb://romahelados-PC/POS-58");  
+            //Test
+            //$connector = new FilePrintConnector("php://stdout");
 
             $printercomponent = new Printer($connector);
             $printercomponent->setJustification(Printer::JUSTIFY_CENTER);
