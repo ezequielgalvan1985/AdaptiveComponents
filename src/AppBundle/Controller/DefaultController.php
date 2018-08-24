@@ -157,7 +157,7 @@ class DefaultController extends Controller
                 $printercomponent->setEmphasis(true);
                 $printercomponent->text("\n");
                 $printercomponent->text("Helados Elegidos \n");
-                $titulo =  str_pad("    Sabor", 15) . str_pad("Cantidad", 8); 
+                $titulo =  str_pad("    Sabor", 24) . str_pad("Cantidad", 8); 
                 $printercomponent->text($titulo);
                 $printercomponent->setEmphasis(false);
                 
@@ -188,7 +188,7 @@ class DefaultController extends Controller
                             $printercomponent->text("\n");   
                         }
 
-                        $producto = "    " . str_pad($item['producto']['nombre'],15);
+                        $producto = " " . str_pad($item['producto']['nombre'],24). " ";
                         $printercomponent->text($producto);
                         
                         if (array_key_exists ('cantidad', $item)){
@@ -271,7 +271,7 @@ class DefaultController extends Controller
             $texto = "Poco";
         }
         if ($cantidad > GlobalValue::MEDIDA_HELADO_EQUILIBRADO_DESDE  && $cantidad <=GlobalValue::MEDIDA_HELADO_EQUILIBRADO_HASTA ){
-            $texto = "Equilibrado";
+            $texto = "Equil.";
         }
         if ($cantidad >= GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_DESDE && $cantidad <=GlobalValue::MEDIDA_HELADO_MUCHO_LIMIT_HASTA ){
             $texto = "Mucho";
